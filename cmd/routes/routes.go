@@ -7,7 +7,8 @@ import (
 
 func SetupRoutes() *http.ServeMux {
 	mux := http.NewServeMux();
-	mux.HandleFunc("GET /api/users", handlers.GetUsers);
-	mux.HandleFunc("POST /api/createUser", handlers.CreateUsers);
+	
+	mux.HandleFunc("GET /users", handlers.GetUsers)
+	mux.HandleFunc("POST /createUser", handlers.CreateUsers)
 	return mux
 }

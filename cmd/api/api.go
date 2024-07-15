@@ -1,9 +1,12 @@
 package api
 
 import (
+	"firstproject/cmd/middleware"
 	"firstproject/cmd/routes"
 	"net/http"
 )
+
+
 
 type APIServer struct{
 	addr string
@@ -17,5 +20,15 @@ func NewApiServer(addr string) *APIServer {
 
 func (s *APIServer) Run() error {
 	router := routes.SetupRoutes();
-	return http.ListenAndServe(s.addr, router)
+
+	Middleware := middleware.MiddlewareChain(
+		middleware.RequestLogger, 
+		middleware.AuthMiddleware,
+	)
+
+	server := http.Server{
+		Addr: s.addr,
+		Handler: Middleware(router),
+	}
+	return server.ListenAndServe()
 }
