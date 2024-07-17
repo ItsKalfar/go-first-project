@@ -23,7 +23,7 @@ func NewApiServer(addr string, db *sql.DB) *APIServer {
 }
 
 func (s *APIServer) Run() error {
-	router := routes.SetupRoutes();
+	router := routes.SetupRoutes(s.db);
 
 	Middleware := middleware.MiddlewareChain(
 		middleware.RequestLogger, 
