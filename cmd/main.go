@@ -3,33 +3,45 @@ package main
 import (
 	"database/sql"
 	"firstproject/cmd/api"
+	"firstproject/cmd/config"
+	"firstproject/cmd/db"
 
-	"fmt"
 	"log"
+	"time"
 
-	_ "github.com/go-sql-driver/mysql"
-)
-
-const (
-	username = "soulwalletadmin"
-	password = "soulwalletadmin%812"
-	hostname = "soulwallet-uat-database-df.csbrrsmepyza.us-east-2.rds.amazonaws.com"
-	dbname   = "soulwallet_uat"
+	"github.com/go-sql-driver/mysql"
 )
 
 func main(){
-	db, err := sql.Open("mysql", dsn("soulwallet_uat"))
-    if err != nil {
-	    log.Printf("Error %s when opening DB\n", err)
-	    return
-    }
-	defer db.Close()
-	server := api.NewApiServer(":8080");
+	db, err := db.MySQLStorage(mysql.Config{
+		User:                 config.Envs.DBUser,
+		Passwd:               config.Envs.DBPassword,
+		Addr:                 config.Envs.DBAddress,
+		DBName:               config.Envs.DBName,
+		Net:                  "tcp",
+		AllowNativePasswords: true,
+		ParseTime:            true,
+		Timeout:              5 * time.Second,
+	})
+
+	if err != nil {
+		log.Fatal("Failed to initialize database storage: ", err)
+	}
+
+	initStorage(db)
+
+	server := api.NewApiServer(config.Envs.Port, db)
 	if err := server.Run(); err != nil {
-		log.Fatal("Some error accourd", err);
+		log.Fatal("An error occurred while running the server: ", err)
 	}
 }
 
-func dsn(dbName string) string {
-	return fmt.Sprintf("%s:%s@tcp(%s)/%s", username, password, hostname, dbName)
+func initStorage(db *sql.DB) {
+	err := db.Ping()
+
+	if err != nil {
+		log.Fatal("An error occurred while connecting to database: ", err)
+	}
+
+	log.Println("DB connected successfully")
 }
