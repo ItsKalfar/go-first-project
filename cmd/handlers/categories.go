@@ -24,11 +24,10 @@ func (h *Handler) CategoryRouter(router *http.ServeMux){
 func (h *Handler) GetCategories(w http.ResponseWriter, r *http.Request){
 	var reqData types.GetRequest
 
-	err := json.NewDecoder(r.Body).Decode(&reqData)
-    if err != nil {
-        utils.SendResponse(w, http.StatusBadRequest, false, err.Error(), nil)
-        return
-    }
+	if err := json.NewDecoder(r.Body).Decode(&reqData); err != nil {
+		utils.SendResponse(w, http.StatusBadRequest, false, "Failed to decode request body: "+err.Error(), nil)
+		return
+	}
 
 	defer r.Body.Close() 
 
@@ -44,6 +43,8 @@ func (h *Handler) GetCategories(w http.ResponseWriter, r *http.Request){
         utils.SendResponse(w, http.StatusBadRequest, false, err.Error(), nil)
         return
     }
+
+	defer count.Close()
 
 	var orderQuery string
     if reqData.OrderBy.Key != "" {

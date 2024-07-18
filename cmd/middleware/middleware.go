@@ -17,12 +17,18 @@ func RequestLogger (next http.Handler) http.HandlerFunc {
 
 func AuthMiddleware(next http.Handler) http.HandlerFunc {
 	return func (w http.ResponseWriter, r *http.Request){
-		// Check for authentication
 		token := r.Header.Get("Authorization")
 
-		log.Printf("Auth Middleware: Received token: %s", token)
+		if token == ""{
+			utils.SendResponse(w, http.StatusUnauthorized, false, "Missing authentication header", nil)
+			return
+		}
 
-		if token != "1234" {
+		// token = token[len("Bearer "):] - To remove Bearer prefix
+
+		err := utils.VerifyToken(token); 
+		
+		if err != nil {
 			utils.SendResponse(w, http.StatusUnauthorized, false, "Unauthorized", nil)
 			return
 		}
